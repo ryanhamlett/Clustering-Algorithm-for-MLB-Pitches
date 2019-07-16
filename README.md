@@ -1,4 +1,5 @@
-# k_means_clustering_pitches
+# K Means Clustering
+
 A k-means cluster analysis of the similarity of pitches in MLB
 
 
@@ -18,13 +19,13 @@ suppressMessages(suppressWarnings(library(knitr)))
 
 ```
 
-#Introduction
+## Introduction
 
 One of the hallmarks of professional baseball are the pitchers' ability to throw many different pitches effectively. In fact, some pitchers throw different assortments of what are generally considered to be the same pitch, such as the different assortments of fastball (cut, two-seam, four-seam, and others). Different pitchers also tend to throw different types of pitches with different grips. All of this can seem a bit complicated and cumbersome for those who are not well-versed in baseball's pitching subculture. But one might wonder, are all of these pitches $\textit{actually}$ different?
 
 As a huge baseball fan, I have wondered if it might be more prudent to classify pitches by spin, speed, and movement rather than simply by how the pitcher holds the ball when he throws it. For many avid baseball watchers, some pitchers throw a cut-fastball, some throw a slider. Both pitches, however, are generally in the range of 88-92 mph and move down and away from a right handed batter at roughly the same angle. In reality, it seems as if the only difference in these pitches is the name being given to them. To the hitter, viewer, and even most pitchers, the pitches are virtually identical. Simplifying classification to call both of these pitches a slider (or cut-fastbal or any other name) would seem to make life easier for casual fans and would likely do little to reduce the information they receive about the pitch being thrown. 
 
-#Data Collection
+## Data Collection
 
 All data has been collected using Major League Baseball's Statcast database, which records a number of interesting variables on every single pitch. These variables include "Spin Rate", "Pitch Velocity", "pf_x", "pf_z", "pitch type", and many others. The data pulled from the statcast database for this project is every pitch from the 2018 season through 5/23 this consists of n = 217,521 total pitches. By necessity, since we are using pitch movement as a clustering feature, I needed to limit the pitches to right-handed pitchers, though we could have chosen left-handed pitchers instead.. I do not think that we lose much, if any, in terms of limiting the dataset this way. I then simplified the dataset by removing pitches titled "null, "UN", "EP", and "PO" since "null" and "UN" are both indicators that the pitch classification algorithm felt this pitch was unlike any pitch it recognizes, "EP" is an "eephus" pitch which is thrown about 10 times a year, and "PO, meaning pickoff, which isn't a real pitch. I then reduced the dataset further by making sure that every pitch included had a recorded "pitch velocity", "pf_x", "pf_z", and "spin rate" value. Ultimately, this resulted in a dataset of n = 152,509 pitches.
 
@@ -34,7 +35,7 @@ The variables "pf_x" and "pf_z" are considered "horizontal movement" and "vertic
 
 In order for the clustering algorithm to work effectively, we also need to scale the data since Euclidean distances are being calculated. Obviously, since we are running a clustering algorithm, we scale this dataset without the pitch classifications but we will hold onto the original classifications for later in order to analyze the sucess of our clustering algorithm. All of the work on the data set is included in the code in the appendix.
 
-#Methods
+## Methods
 
 For this project, I have used what is likely the simplest clustering algorithm, the k-means clustering technique. In the k-means clustering algorithm, we first center and scale the data. We then pick $k$ starting values as our initialized cluster centers. Each iteration through the algorithm, we calculate the Euclidean distance from all $k$ centers for each point in our dataset. We assign each point to the cluster where the calculated Euclidean distance is smallest. We then redefine the $k$ centers as the mean of each of the $k$ clusters defined in the previous step. These last two steps are repeated until convergence.
 
@@ -159,7 +160,7 @@ clustering = function(data, k, silhouette.size = 1000){
 ```
 
 
-#Results
+## Results
 
 On the next few pages, you will see one of the silhoutte plots calculated for each of the clustering algorithms from k = 2 to k = 11. Directly after these silhouette plots, you will see a table that shows the mean average silhouette length for each k. One popular way of selecting $k$ for clustering algorithms is choosing $k$ to be the number of centers that produces the smallest average silhouette length. Once again, as was stated previously, these average silhouette lengths are prone to some error since we are only sampling a random subset of each cluster for each algorithm. Thus, I have calculated the mean average silhouette length over m = 20 different random subsets of the data in the hopes of reducing the variability of this estimate.
 
@@ -178,14 +179,14 @@ kable(t(all.clusters[[3]]), digits = 3, caption = "Mean Average Silhoutte Length
 
 ```
 
-##Analysis of K-Means Clustering Algorithm with k = 11
+### Analysis of K-Means Clustering Algorithm with k = 11
 
 As we can see in the previous table, the mean average silhouette length favors k = 11 over the pack of k = 7, 8, 9, & 10 which are all in roughly the same range. We will proceed with an analysis of the clustering method for k = 11 first, though our ultimate goal is to appropriately reduce the number of clusters. 
 
 Below we have three tables that describe the clustering method in different ways:
 
 
-###Table 1A: Proportion Within Cluster
+#### Table 1A: Proportion Within Cluster
 - This first table shows the proportion of  pitches classified under their original classification within each of the 11 new clusters. For example, "Pitch 1" is made up of 72% curveballs, 19% knuckle-curves, and 9% sliders. In other words, the row sums in this table are equal to 1. 
 
 
@@ -326,7 +327,7 @@ pander(proportions)
 ```
 
 
-###Table 2A: Proportion Within Original Classification
+#### Table 2A: Proportion Within Original Classification
 - This second table shows how the original pitch classifications are distributed through the 11 new pitch clusters. For example, 0.3% of changeups are classified as "Pitch 2", 0.3% are classified as "Pitch 3", 61.6% as "Pitch 4", 3.7% as "Pitch 5" and so on. In other words, the column sums in this table are equal to 1.
 
 ```{r echo = F}
@@ -335,7 +336,7 @@ pander(pitchprop)
 
 ```
 
-###Table 3A: Middle 90% of Feature Space
+#### Table 3A: Middle 90% of Feature Space
 - This third table shows the middle 90% of the feature space in each new pitch cluster. For example, in Pitch 1, the middle 90% of spin rate is between 2487.0 and 3114.1 reveolutions per minute (rpms), the middle 90% of horizontal movement ranges between 0.447 and 1.598 inches, the middle 90% of vertical movement ranges between -1.600 and -0.411 inches and the middle 90% of velocity relative to the maximum is -21.90 to -12.70 miles per hour (mph).
 
 ```{r echo = F}
@@ -345,7 +346,7 @@ pander(features)
 
 The most interesting part of this reclustering is that we have simply reclustered pitches into the same number of clusters as we started with. Originally, we started with 11 pitch classifications and the goal was to reduce the number of clusters to simplify pitch classification. What we have done here is recluster pitches, and show that the current pitch classification rule is not all that good at identifying how a particular pitch looks or moves to a hitter. An example of this is the relationship between curveball and slider. If we look at our first table, Pitch 1 is made up mostly of curveballs and knuckle-curveballs with some sliders mixed in. The interesting thing is that "Pitch 3" is also made up of the same three pitches, just pitches that clearly move differently or travel at different speeds. The original pitch classificiation method is failing us here. 
 
-##Analysis of K-Means Clustering Algorithm with k = 5
+### Analysis of K-Means Clustering Algorithm with k = 5
 
 The primary goal of this project was to see if it was possible to reduce the number of pitch clusters. In our previous analysis, we noticed that there are two new pitch clusters that consist mostly of curveballs, knuckle-curves, and sliders. Intuitively, it would make sense to be able to cluster those two pitches together. But how should we determine the number of k to use if not via the average silhouette length as before?
 
@@ -498,7 +499,7 @@ for(i in 1:cluster.no){
 
 ```
 
-###Table 1B: Proportion Within Cluster
+#### Table 1B: Proportion Within Cluster
 
 The table below shows us several things:
 
@@ -520,7 +521,7 @@ pander(proportions)
 
 We have to be wary with the proportions in this table, however. It might be more useful to look at how each of the original pitch classifications are distributed across the new pitch clusters
 
-###Table 2B: Proportion Within Original Classification
+#### Table 2B: Proportion Within Original Classification
 
 If we look at the table below, we can see that most changeups, forkballs, splitfinger fastballs, and knuckleballs are classified as "pitch 1", most cut fastballs and sliders are classified as "pitch 2", most curveballs and knuckle-curveballs are classified as "pitch 3", most four-seam fastballs are classified as "pitch 4", and most two-seam fastballs and sinkers are classified as pitch 5.
 
@@ -547,7 +548,7 @@ pander(features)
 
 Ultimately, after analyzing the feature space of these pitch clusters, the naming conventions I have proposed continue to seem reasonable. Thus, in the case where we choose $k$ = 5, we end up with only 5 total types of pitches in baseball: A changeup, slider, curveball, rising fastball, and sinking fastball. This naming convention simplifies the nature of pitching instead of having multiple names for pitches that look and act the same to most observers. 
 
-#Discussion
+## Discussion
 
 Pitching in baseball can seem quite complicated and convoluted to the casual fan. Understanding things like pitch sequencing is even further muddled by the current naming conventions of pitches in the Major League Baseball. The goal of this project was to reduce the complexity of the naming structure for casual fans and see how much, if any, information we lose.
 
