@@ -2,6 +2,8 @@
 
 A k-means cluster analysis of the similarity of pitches in MLB
 
+## Dataset too large to upload to GitHub but available on request
+
 
 
 ```{r setup, include=FALSE}
