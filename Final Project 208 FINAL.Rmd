@@ -1,8 +1,11 @@
 ---
 title: "Stat 208 Final Project"
 author: "Ryan Hamlett"
-date: "June 8, 2018"
-output: pdf_document
+date: "June 6, 2018"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -164,8 +167,9 @@ clustering = function(data, k, silhouette.size = 1000){
 
 On the next few pages, you will see one of the silhoutte plots calculated for each of the clustering algorithms from k = 2 to k = 11. Directly after these silhouette plots, you will see a table that shows the mean average silhouette length for each k. One popular way of selecting $k$ for clustering algorithms is choosing $k$ to be the number of centers that produces the smallest average silhouette length. Once again, as was stated previously, these average silhouette lengths are prone to some error since we are only sampling a random subset of each cluster for each algorithm. Thus, I have calculated the mean average silhouette length over m = 20 different random subsets of the data in the hopes of reducing the variability of this estimate.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.height = 8, fig.width = 6}
 
+par(mfrow = c(2,1))
 all.clusters = suppressWarnings(clustering(cluster.data, 11, silhouette.size = 2000))
 
 ```
@@ -175,19 +179,19 @@ all.clusters = suppressWarnings(clustering(cluster.data, 11, silhouette.size = 2
 ```{r echo = FALSE}
 
 #enumerating mean average silhoutte length for each k
-kable(t(all.clusters[[3]]), digits = 3, caption = "Mean Average Silhoutte Length for k = 1, ..., 11")
+kable(t(all.clusters[[3]]), digits = 4, format = "latex", caption = "Mean Average Silhouette Length for k = 2, ..., 12")
 
 ```
 
 ##Analysis of K-Means Clustering Algorithm with k = 11
 
-As we can see in the previous table, the mean average silhouette length favors k = 11 over the pack of k = 7, 8, 9, & 10 which are all in roughly the same range. We will proceed with an analysis of the clustering method for k = 11 first, though our ultimate goal is to appropriately reduce the number of clusters. 
+As we can see in the previous table, the mean average silhouette length favors k = 2 and 3 over the pack of k = 4 through 11 which are all in roughly the same range. We will proceed with an analysis of the clustering method for k = 2 first.
 
 Below we have three tables that describe the clustering method in different ways:
 
 
 ###Table 1A: Proportion Within Cluster
-- This first table shows the proportion of  pitches classified under their original classification within each of the 11 new clusters. For example, "Pitch 1" is made up of 72% curveballs, 19% knuckle-curves, and 9% sliders. In other words, the row sums in this table are equal to 1. 
+- This first table shows the proportion of  pitches classified under their original classification within both of the 2 new clusters. For example, "Pitch 1" is made up of 30% curveballs, 9% knuckle-curves, and 53% sliders. In other words, the row sums in this table are equal to 1. 
 
 
 ```{r echo = FALSE}
@@ -195,7 +199,7 @@ Below we have three tables that describe the clustering method in different ways
 #choose k = 11 due to smallest average silhoutte length
 
 
-cluster.no = 11
+cluster.no = 2
 best.cluster = all.clusters[[1]][[(cluster.no - 1)]]
 
 #mapping new clusters back to old names to determine what types of pitch names are going into each cluster
@@ -206,15 +210,11 @@ pitchprop = matrix(nrow = cluster.no, ncol = 11)
 colnames(proportions) = c("Changeup", "Curveball", "Cut FB", "Four-Seam FB", 
                          "Forkball", "Splitfinger FB", "Two-Seam FB", 
                          "Knuckle Curve", "Knuckleball", "Sinker", "Slider")
-rownames(proportions) = c("Pitch 1", "Pitch 2", "Pitch 3", "Pitch 4", "Pitch 5", 
-                         "Pitch 6", "Pitch 7", "Pitch 8", "Pitch 9", "Pitch 10", 
-                         "Pitch 11")
+rownames(proportions) = c("Pitch 1", "Pitch 2")
 colnames(pitchprop) = c("Changeup", "Curveball", "Cut FB", "Four-Seam FB", 
                        "Forkball", "Splitfinger FB", "Two-Seam FB", 
                        "Knuckle Curve", "Knuckleball", "Sinker", "Slider")
-rownames(pitchprop) = c("Pitch 1", "Pitch 2", "Pitch 3", "Pitch 4", "Pitch 5", 
-                       "Pitch 6", "Pitch 7", "Pitch 8", "Pitch 9", "Pitch 10", 
-                          "Pitch 11")
+rownames(pitchprop) = c("Pitch 1", "Pitch 2")
 
 #two different proportions being reported, one with respect to total within cluster, 
 #one with respect to total within previous classification
@@ -328,7 +328,7 @@ pander(proportions)
 
 
 ###Table 2A: Proportion Within Original Classification
-- This second table shows how the original pitch classifications are distributed through the 11 new pitch clusters. For example, 0.3% of changeups are classified as "Pitch 2", 0.3% are classified as "Pitch 3", 61.6% as "Pitch 4", 3.7% as "Pitch 5" and so on. In other words, the column sums in this table are equal to 1.
+- This second table shows how the original pitch classifications are distributed through the 2 new pitch clusters. For example, 98% of changeups are classified as "Pitch 2" and 2% are classified as "Pitch 3". In other words, the column sums in this table are equal to 1.
 
 ```{r echo = F}
 
@@ -344,11 +344,11 @@ pander(features)
 
 ```
 
-The most interesting part of this reclustering is that we have simply reclustered pitches into the same number of clusters as we started with. Originally, we started with 11 pitch classifications and the goal was to reduce the number of clusters to simplify pitch classification. What we have done here is recluster pitches, and show that the current pitch classification rule is not all that good at identifying how a particular pitch looks or moves to a hitter. An example of this is the relationship between curveball and slider. If we look at our first table, Pitch 1 is made up mostly of curveballs and knuckle-curveballs with some sliders mixed in. The interesting thing is that "Pitch 3" is also made up of the same three pitches, just pitches that clearly move differently or travel at different speeds. The original pitch classificiation method is failing us here. 
+The most interesting part of this reclustering is that we have reclustered pitches into only two clusters. Originally, we started with 11 pitch classifications and the goal was to reduce the number of clusters to simplify pitch classification. What we have done here is recluster pitches into what I would consider "straight" pitches (i.e. fastballs, changeups, sinkers, splitters, etc.), and "breaking balls" (i.e. curveballs and sliders). This is interesting in that this algorithm seems to believe that the best way to reclassify pitches is just to classify pitches by splitting them based on movement in the x and y direction as seen in the previous table.
 
-##Analysis of K-Means Clustering Algorithm with k = 5
+##Analysis of K-Means Clustering Algorithm with k = 4
 
-The primary goal of this project was to see if it was possible to reduce the number of pitch clusters. In our previous analysis, we noticed that there are two new pitch clusters that consist mostly of curveballs, knuckle-curves, and sliders. Intuitively, it would make sense to be able to cluster those two pitches together. But how should we determine the number of k to use if not via the average silhouette length as before?
+The primary goal of this project was to see if it was possible to reduce the number of pitch clusters, but reducing to only two pitches might be a little too simplistic. If we are to recluster all of these pitches in a more descriptive way, how should we determine the number of k to use if not via the average silhouette length as before?
 
 One method of selecting $k$ is what is called "The Elbow Method." This method only requires that we calculate the ratio of within-cluster sum of squares to the total sum of squares for each $k$. As we would expect with any sum of squares statistic, this value will always decrease as $k$ increases. Thus, we need to select $k$ where we start to see little-to-no decrease in our within-cluster sum of squares ratio. The following plot and table shows the relationship between $k$ and within-cluster sum of squares divided by total sum of squares.
 
@@ -363,12 +363,12 @@ One method of selecting $k$ is what is called "The Elbow Method." This method on
 plot(all.clusters[[2]], xlim = c(0, 13), xlab = "k", ylab = "Within SS/Total SS", main = "Within SS/Tot SS by k")
 
 #enumerating within.ss/tot.ss for each k
-kable(t(all.clusters[[2]]), digits = 3, caption = "Within SS/Total SS by K")
+kable(t(all.clusters[[2]]), format = "latex", digits = 3)
 
 
 ```
 
-Looking at the plot, the argument could be made for $k$ = 3, 4, or 5 in my opinion. The drop in the ratio of within-cluster sum of squares from $k$ = 2 to $k$ = 3 is substantial (about 0.15), and the drop from $k$ = 3 to $k$ = 4 is quite a bit smaller (0.06), but I think the most logical $k$ to choose is $k$ = 5 since the within-cluster sum of squares ratio drops consistantly as $k$ increases up until we from $k$ = 5 to $k$ = 6 where the decreases is less than 0.02. Choosing a cluster size is also about the number of clusters I had hoped to be able to achieve when I started this project. Thus, I will proceed with a similar analysis as with $k$ = 11, but now with $k$ = 5.
+Looking at the plot, the argument could be made for $k$ = 3, 4, or 5 in my opinion. The drop in the ratio of within-cluster sum of squares from $k$ = 2 to $k$ = 3 is substantial (about 0.15), and the drop from $k$ = 3 to $k$ = 4 is quite a bit smaller (0.06), and I think it would also be logical $k$ to choose is $k$ = 5 since the within-cluster sum of squares ratio drops consistantly as $k$ increases up until we from $k$ = 5 to $k$ = 6 where the decreases is less than 0.02. At this point, I should also state that the number of clusters I had hoped to be able to achieve when I started this project is in the range of about 4 or 5. Thus, I will proceed with a similar analysis as with $k$ = 2, but now with $k$ = 4.
 
 
 ```{r echo = F}
@@ -378,7 +378,7 @@ Looking at the plot, the argument could be made for $k$ = 3, 4, or 5 in my opini
 
 #choose k = 5 via the elbow method
 
-cluster.no = 5
+cluster.no = 4
 
 best.cluster = all.clusters[[1]][[cluster.no-1]]
 
@@ -392,11 +392,11 @@ pitchprop = matrix(nrow = cluster.no, ncol = 11)
 colnames(proportions) = c("Changeup", "Curveball", "Cut FB", "Four-Seam FB", 
                           "Forkball", "Splitfinger FB", "Two-Seam FB", "Knuckle Curve",
                           "Knuckleball", "Sinker", "Slider")
-rownames(proportions) = c("Pitch 1", "Pitch 2", "Pitch 3", "Pitch 4", "Pitch 5")
+rownames(proportions) = c("Pitch 1", "Pitch 2", "Pitch 3", "Pitch 4")
 colnames(pitchprop) = c("Changeup", "Curveball", "Cut FB", "Four-Seam FB", 
                         "Forkball", "Splitfinger FB", "Two-Seam FB", "Knuckle Curve",
                         "Knuckleball", "Sinker", "Slider")
-rownames(pitchprop) = c("Pitch 1", "Pitch 2", "Pitch 3", "Pitch 4", "Pitch 5")
+rownames(pitchprop) = c("Pitch 1", "Pitch 2", "Pitch 3", "Pitch 4")
 
 #two different proportions being reported, one with respect to total within cluster, one with respect to total within previous classification
 
@@ -503,15 +503,14 @@ for(i in 1:cluster.no){
 
 The table below shows us several things:
 
-1) "Pitch 1" is made up of 77% Changeups with a smaller number (15%) of split-finger fastballs. We can probably label this pitch as simply a "changeup", though we will investigate how these pitches truly look when we look at the feature space laer.
+1) "Pitch 1" is made up of 61% Changeups with a smaller number (11%) of split-finger fastballs. We can probably label this pitch as simply a "changeup", though we will investigate how these pitches truly look when we look at the feature space laer.
 
-2) "Pitch 2" is made up of mostly cut-fastballs and sliders, two pitches that baseball aficionados know move very similarly. This pitch can probably be labeled more simply as a "slider."
+2) "Pitch 2" is made up of mostly curveballs, knuckle-curves, and some sliders. This pitch can probably be labeled more simply as your standard "curveball".
 
-3) "Pitch 3" is made up mostly of curveballs, sliders and knuckle-curves. This pitch would likely be called a curveball or slurve by most coaches.
+3) "Pitch 3" is made up mostly of four-seam and two-seam fastballs. Surely, this pitch would be called a "fastball" as a catch-all term.
 
-4) "Pitch 4" is comprised almost exclusively of four-seam fastballs (89%). I imagine this pitch would be considered the "hard, straight fastball" by most players and coaches, which has little to no sinking action and may even appear to rise to hitters.
+4) "Pitch 4" is comprised almost exclusively of cut-fastballs and sliders. I think we could more accurately call this pitch a "slider" and remove the cut-fastball terminology.
 
-5) "Pitch 5" is made up of a combination of four-seam fastballs, two-seam fastballs, and sinkers. These pitches are likely the fastballs that have some sinking action as they move towards the hitter and are generally just considered "sinkers" by players and coaches.
 
 ```{r echo = F}
 
@@ -523,37 +522,9 @@ We have to be wary with the proportions in this table, however. It might be more
 
 ###Table 2B: Proportion Within Original Classification
 
-If we look at the table below, we can see that most changeups, forkballs, splitfinger fastballs, and knuckleballs are classified as "pitch 1", most cut fastballs and sliders are classified as "pitch 2", most curveballs and knuckle-curveballs are classified as "pitch 3", most four-seam fastballs are classified as "pitch 4", and most two-seam fastballs and sinkers are classified as pitch 5.
+If we look at the table below, we can see that most changeups, forkballs, splitfinger fastballs, and knuckleballs are classified as "pitch 1", most curveballs and knuckle curves are classified as "pitch 2" (with some of the knuckleballs and sliders mixed in), most four-seam and two-seam fastballs are classified as "pitch 3", most cut-fastballs and sliders are classified as "pitch 4".
 
 ```{r echo = F}
 pander(pitchprop)
 
 ```
-
-Based on these results, the naming mechanisms I have proposed in the previous section still seem to be reasonable. The last thing we should do, however, is investigate the feature space of each of our new clusters to see how these pitches act in general.
-
-###Table 3B: Feature Space
-
-A few notable things about the feature spaces of these pitches seen in the table below.:
-
-- Pitch 1 has a noticeable difference in spin rate from all other pitches. A pitch under 1500 rpms will almost always be classified as pitch 1.
-- Pitch 4 and 5 have very similar profiles except for differences in vertical movement, providing more evidence for the sinking fastball vs. rising fastball naming convention I have proposed a couple of sections earlier.
-- Pitch 2 and 3 are quite similar, both of which being pitches with high spin rates and lots of downward vertical movement. Pitch 3 has more significant vertical movement, while Pitch 2 has more vertical movement. Another stark difference is the speed at which each of these breaking pitches are thrown. Pitch 2 is thrown about 5-7 mph faster relative to maximum velocity than Pitch 3 is. 
-
-```{r echo = F}
-
-pander(features)
-
-```
-
-Ultimately, after analyzing the feature space of these pitch clusters, the naming conventions I have proposed continue to seem reasonable. Thus, in the case where we choose $k$ = 5, we end up with only 5 total types of pitches in baseball: A changeup, slider, curveball, rising fastball, and sinking fastball. This naming convention simplifies the nature of pitching instead of having multiple names for pitches that look and act the same to most observers. 
-
-#Discussion
-
-Pitching in baseball can seem quite complicated and convoluted to the casual fan. Understanding things like pitch sequencing is even further muddled by the current naming conventions of pitches in the Major League Baseball. The goal of this project was to reduce the complexity of the naming structure for casual fans and see how much, if any, information we lose.
-
-Using k-means reclustering, out of necessity, I used two different methods to determine $k$. One method, average silhouette lengths, led me to choose $k$ = 11, exactly the number of clusters I started with. Even though the data was clustered differently than the original data, a cluster size of $k$ = 11 was not the original goal of the project. That being said, the fact that the data was reclustered differently than the original data despite having the same number of clusters leads me to believe that the naming conventions in baseball currently are not exceptionally good at describing the way a pitch looks to a hitter or well-informed observer anyway. Thus, reclustering with a smaller $k$ seems reasonable and not particularly harmful if we choose $k$ in an intelligent way.
-
-Using the "elbow method" to select $k$, I chose $k$ = 5 since the within-cluster sum of squares levels off and decreases much more slowly after $k$ = 5. This clustering algorithm was particularly insightful, since we managed to reduce the types of pitches down to changeup, slider, curveball, rising fastball, and sinking fastball. 
-
-Ultimately, this project was insightful in that I confirmed a lot of suspicions about which pitches are similar to each other and how the naming conventions in modern baseball seem precise but can be convoluted and imprecise as well. 
